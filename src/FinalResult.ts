@@ -2,11 +2,15 @@ import requiredResult from "./requiredResult"
 
 export interface FinalResultParameter {
   /** 試験順位 */
-  examinationPosition: number,
-  /** ステータス合計値 */
-  statusSummary: number,
+  examinationPosition: number
+  /** ステータス */
+  status: {
+    vocal: number
+    dance: number
+    visual: number
+  }
   /** 試験スコア */
-  examinationScore: number,
+  examinationScore: number
 }
 
 function positionScoreResult(position: number): number {
@@ -18,7 +22,18 @@ function positionScoreResult(position: number): number {
   }
 }
 
-function statusScoreResult(statusSummary: number) {
+function statusScoreResult(status: FinalResultParameter["status"], position: number) {
+  // 最終試験の順位によるステータス加算
+  // 1位: 30
+  // 2位: 15
+  // 3位: 0
+  let statusAdd = 0
+  if (position === 1) {
+    statusAdd = 30
+  } else if (position === 2) {
+    statusAdd = 15
+  }
+  const statusSummary = Math.min(status.vocal + statusAdd, 1500) + Math.min(status.dance + statusAdd, 1500) + Math.min(status.visual + statusAdd, 1500)
   return Math.floor(2.3 * statusSummary)
 }
 
@@ -46,10 +61,10 @@ function examinationScoreResult(examinationScore: number): number {
  * 最終ポイント計算
  * 
  */
-export function calcurateFinalResult(parameter: FinalResultParameter) {
+export function calcurateFinalResult(parameter: FinalResultParameter): number {
   return Math.floor(
     positionScoreResult(parameter.examinationPosition)
-    + statusScoreResult(parameter.statusSummary)
+    + statusScoreResult(parameter.status, parameter.examinationPosition)
     + examinationScoreResult(parameter.examinationScore)
   )
 }
@@ -60,7 +75,7 @@ export function calcurateFinalResult(parameter: FinalResultParameter) {
  * @param targetRank 目標ランク
  * @param statusSummary ステータス合計
  */
-export function requireExaminationScore(targetRank: string, statusSummary: number, position: number) {
+export function requireExaminationScore(targetRank: string, status: FinalResultParameter["status"], position: number) {
   // 目標とする最終ポイント
   let targetResult = 0
   switch (targetRank) {
@@ -71,7 +86,11 @@ export function requireExaminationScore(targetRank: string, statusSummary: numbe
   }
 
   // 目標の最終ポイントから、ステータスで決まる分と順位点の分を引く
-  const remainResult = targetResult - statusScoreResult(statusSummary) - positionScoreResult(position)
+  // 0以下になった場合は0返却
+  const remainResult = targetResult - statusScoreResult(status, position) - positionScoreResult(position)
+  if (remainResult <= 0) {
+    return 0
+  }
 
   // 最終試験の点数によって決まる分から逆算する
   if (0 < remainResult && remainResult <= 1500) {
