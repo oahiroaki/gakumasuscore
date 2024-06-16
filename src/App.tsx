@@ -94,11 +94,13 @@ function App() {
 
       const statsList: Array<{status: number, minHeight: number, maxHeight: number}> = []
       data.readResult.blocks[0].lines.forEach(line => {
-        if (/^[0-9]{2,4}$/.test(line.text)) {
+        // OCRで "1234" や "1234 >>" のような値を読み取っているところをマッチさせる
+        if (/^[0-9]{2,4}( +>>)?$/.test(line.text)) {
           const heights = line.boundingPolygon.map(bp => bp.y)
           const maxHeight = Math.max.apply(null, heights)
           const minHeight = Math.min.apply(null, heights)
-          statsList.push({status: parseInt(line.text, 10), minHeight, maxHeight})
+          const statusValue = />>/.test(line.text) ? parseInt(line.text.split(" ")[0], 10) : parseInt(line.text, 10)
+          statsList.push({status: statusValue, minHeight, maxHeight})
         }
       })
 
