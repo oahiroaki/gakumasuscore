@@ -31,7 +31,7 @@ jobs:
           api_location: 'api'
           output_location: 'dist'
           app_build_command: 'npm run build'
-          skip_api_build: true
+          api_build_command: 'npm run build'
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
