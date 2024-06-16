@@ -94,14 +94,18 @@ function App() {
 
       const statsList: Array<{status: number, minHeight: number, maxHeight: number}> = []
       data.readResult.blocks[0].lines.forEach(line => {
-        // OCRで "1234" や "1234 >>" のような値を読み取っているところをマッチさせる
-        if (/^[0-9]{2,4}( +>>)?$/.test(line.text)) {
-          const heights = line.boundingPolygon.map(bp => bp.y)
-          const maxHeight = Math.max.apply(null, heights)
-          const minHeight = Math.min.apply(null, heights)
-          const statusValue = />>/.test(line.text) ? parseInt(line.text.split(" ")[0], 10) : parseInt(line.text, 10)
-          statsList.push({status: statusValue, minHeight, maxHeight})
+        if (/[0-9]{2,4}/.test(line.text)) {
+          line.words.forEach(word => {
+            if (/^[0-9]{2,4}$/.test(word.text)) {
+              const heights = word.boundingPolygon.map(bp => bp.y)
+              const maxHeight = Math.max.apply(null, heights)
+              const minHeight = Math.min.apply(null, heights)
+              const statusValue = parseInt(word.text, 10)
+              statsList.push({status: statusValue, minHeight, maxHeight})
+            }    
+          })
         }
+        // OCRで "1234" のような値を読み取っているところをマッチさせる
       })
 
       if (positionList.length === 0 || statsList.length === 0) {
@@ -187,9 +191,12 @@ function App() {
             </div>
           </div>
 
-          <div className="my-2 font-bold">画面キャプチャからステータス反映</div>
+          <div className="my-2 font-bold">スクリーンショットからステータス反映</div>
           <div className="flex flex-col gap-4">
-            <div className="w-full text-gray-700 text-sm">下のような最終試験前のキャプチャを選択して、キャプチャから読み込むボタンを押してください。</div>
+            <div className="w-full text-gray-700 text-sm">
+              下のような最終試験前のスクリーンショットを選択して、スクショから読み込むボタンを押してください。<br/>
+              うまく読み込めないときもあります。
+            </div>
             <div className="flex gap-4">
               <img src={sampleImage} className="w-28" />
               <div className="flex flex-col gap-4">
@@ -200,7 +207,7 @@ function App() {
                     onClick={() => loadStatusFromImage()}
                     disabled={buttonDisabled}
                   >
-                    キャプチャから読み込む
+                    スクショから読み込む
                   </button>
                 </div>
               </div>
