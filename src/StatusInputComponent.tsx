@@ -22,7 +22,7 @@ function StatusInputComponent(props: StatusInputComponentProps) {
   }
 
   function className() {
-    let className = "w-full text-right bg-white appearance-none border-2 rounded p-2 text-gray-700 leading-tight focus:outline-none"
+    let className = "w-full text-right bg-white appearance-none border-2 rounded p-1 text-gray-700 focus:outline-none"
     if (props.type === "visual") {
       className += " border-yellow-200 focus:border-yellow-400"
     } else if (props.type === "dance") {
@@ -36,17 +36,12 @@ function StatusInputComponent(props: StatusInputComponentProps) {
   }
 
   return (
-    <div className="">    
-      <div className="w-24 pr-4">
+    <div className="flex flex-row items-baseline justify-start md:flex-col">
+      <div className="w-24 text-right text-sm md:text-left pr-4 md:px-0">
         <label className="block text-gray-500" htmlFor={props.label}>{props.label}</label>
       </div>
-      <div className="w-48">
-        <input
-          className={className()}
-          type="number"
-          onChange={changeValue}
-          value={props.value}
-        />
+      <div className="w-44">
+        <input className={className()} type="number" onChange={changeValue} value={props.value} />
         <div className="h-4 text-red-500 text-xs">
           {errorMessage}
         </div>
