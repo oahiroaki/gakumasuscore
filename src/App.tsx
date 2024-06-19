@@ -124,7 +124,7 @@ function App() {
           <div className="my-2 font-bold">最終試験の結果</div>
           <div className="">
             <div className="w-full text-gray-700 text-xs mb-2">
-              1位の場合、試験クリア時ボーナスで各ステータスに+30されます。<br/>
+              1位の場合、試験クリア時ボーナスで各ステータスに自動で+30されます。<br/>
               点数は、最終プロデュース評価を計算する場合のみ入力してください。
             </div>
             <div className="w-full flex flex-col gap-2 md:gap-4 md:flex-row md:justify-baseline md:items-baseline">
