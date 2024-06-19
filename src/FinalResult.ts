@@ -25,13 +25,11 @@ function positionScoreResult(position: number): number {
 function statusScoreResult(status: FinalResultParameter["status"], position: number) {
   // 最終試験の順位によるステータス加算
   // 1位: 30
-  // 2位: 15
+  // 2位: 0
   // 3位: 0
   let statusAdd = 0
   if (position === 1) {
     statusAdd = 30
-  } else if (position === 2) {
-    statusAdd = 15
   }
   const statusSummary = Math.min(status.vocal + statusAdd, 1500) + Math.min(status.dance + statusAdd, 1500) + Math.min(status.visual + statusAdd, 1500)
   return Math.floor(2.3 * statusSummary)
