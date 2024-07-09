@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Tooltip } from "react-tooltip"
 
 interface StatusInputComponentProps {
   label: string
@@ -37,14 +38,15 @@ function StatusInputComponent(props: StatusInputComponentProps) {
 
   return (
     <div className="flex flex-row items-baseline justify-start md:flex-col">
-      <div className="w-24 text-right text-sm md:text-left pr-4 md:px-0">
+      <div className="w-24 text-sm text-right pr-2 md:text-left md:px-0">
         <label className="block text-gray-500" htmlFor={props.label}>{props.label}</label>
       </div>
       <div className="w-44">
-        <input className={className()} type="number" onChange={changeValue} value={props.value} />
-        <div className="h-4 text-red-500 text-xs">
-          {errorMessage}
-        </div>
+        <input
+          className={className()} type="number" onChange={changeValue} value={props.value}
+          data-tooltip-id="my-tooltip" data-tooltip-content={errorMessage}
+        />
+        <Tooltip id="my-tooltip" />
       </div>
     </div>
   )

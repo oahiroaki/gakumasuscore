@@ -7,7 +7,7 @@ interface PositionInputComponentProps {
 function PositionInputComponent(props: PositionInputComponentProps) {
   return (
     <div className="flex flex-row items-baseline justify-start md:flex-col">
-      <div className="w-24 pr-4 md:px-0 text-right text-sm md:text-left">
+      <div className="w-24 pr-2 md:px-0 text-right text-sm md:text-left">
         <label className="text-gray-700" htmlFor="position">{props.label}</label>
       </div>
       <div>

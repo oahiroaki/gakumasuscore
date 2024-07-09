@@ -1,5 +1,3 @@
-import requiredResult from "./requiredResult"
-
 export interface FinalResultParameter {
   /** 試験順位 */
   examinationPosition: number
@@ -77,9 +75,10 @@ export function requireExaminationScore(targetRank: string, status: FinalResultP
   // 目標とする最終ポイント
   let targetResult = 0
   switch (targetRank) {
-    case 'A': targetResult = requiredResult['A']; break
-    case 'A+': targetResult = requiredResult['A+']; break
-    case 'S': targetResult = requiredResult['S']; break
+    case 'A': targetResult = 10000; break
+    case 'A+': targetResult = 11500; break
+    case 'S': targetResult = 13000; break
+    case 'S+': targetResult = 14500; break
     default: throw Error('Unknown target rank.')
   }
 

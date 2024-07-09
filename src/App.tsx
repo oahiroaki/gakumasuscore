@@ -5,7 +5,6 @@ import sampleImage from "./images/IMG_3877.jpg"
 import { loadStatusFromOcrResponse } from "./loadStatusFromImage"
 import PositionInputComponent from "./PositionInputComponent"
 import LoadingComponent from "./LoadingComponent"
-import requiredResult from "./requiredResult"
 
 function App() {
   const [vocal, setVocal] = useState<string>("1000")
@@ -19,6 +18,7 @@ function App() {
       "A": {score: "", diff: ""},
       "A+": {score: "", diff: ""},
       "S": {score: "", diff: ""},
+      "S+": {score: "", diff: ""},
     }  
   }
   const [results, setResults] = useState(defaultResults)
@@ -46,10 +46,12 @@ function App() {
     const aScore = requireExaminationScore("A", status, examinationPosition)
     const aPlusScore = requireExaminationScore("A+", status, examinationPosition)
     const sScore = requireExaminationScore("S", status, examinationPosition)
+    const sPlusScore = requireExaminationScore("S+", status, examinationPosition)
 
     setResults({
       finalPoint: toString(finalPoint),
       requiredFinalExaminaionScore: {
+        "S+": {score: toString(sPlusScore), diff: toString(Math.max(sPlusScore - examinationScore, 0))},
         "S": {score: toString(sScore), diff: toString(Math.max(sScore - examinationScore, 0))},
         "A+": {score: toString(aPlusScore), diff: toString(Math.max(aPlusScore - examinationScore, 0))},
         "A": {score: toString(aScore), diff: toString(Math.max(aScore - examinationScore, 0))},
@@ -100,7 +102,7 @@ function App() {
       <main className="w-full p-2">
         <div className="">
           <div className="my-2 font-bold">最終試験開始前のステータス</div>
-          <div className="w-full flex flex-col md:flex-row md:gap-4">
+          <div className="w-full flex flex-col gap-2 md:flex-row md:gap-4">
             <StatusInputComponent label="ボーカル" value={vocal} setValue={setVocal} type="vocal" />
             <StatusInputComponent label="ダンス" value={dance} setValue={setDance} type="dance" />
             <StatusInputComponent label="ビジュアル" value={visual} setValue={setVisual} type="visual" />
@@ -147,18 +149,23 @@ function App() {
               </thead>
               <tbody>
                 <tr className="border-b border-x">
+                  <td className="px-4 py-2 text-center">S+</td>
+                  <td className="px-4 py-2 text-right">14500</td>
+                  <td className="px-4 py-2 text-right">{results.requiredFinalExaminaionScore["S+"].score}</td>
+                </tr>
+                <tr className="border-b border-x">
                   <td className="px-4 py-2 text-center">S</td>
-                  <td className="px-4 py-2 text-right">{requiredResult.S}</td>
+                  <td className="px-4 py-2 text-right">13000</td>
                   <td className="px-4 py-2 text-right">{results.requiredFinalExaminaionScore.S.score}</td>
                 </tr>
                 <tr className="border-b border-x">
                   <td className="px-4 py-2 text-center">A+</td>
-                  <td className="px-4 py-2 text-right">{requiredResult["A+"]}</td>
+                  <td className="px-4 py-2 text-right">11500</td>
                   <td className="px-4 py-2 text-right">{results.requiredFinalExaminaionScore["A+"].score}</td>
                 </tr>
                 <tr className="border-b border-x">
                   <td className="px-4 py-2 text-center">A</td>
-                  <td className="px-4 py-2 text-right">{requiredResult.A}</td>
+                  <td className="px-4 py-2 text-right">10000</td>
                   <td className="px-4 py-2 text-right">{results.requiredFinalExaminaionScore.A.score}</td>
                 </tr>
               </tbody>
