@@ -1,12 +1,16 @@
+import { GameMode } from "./GameMode"
+
+export interface IdolStatus {
+  vocal: number
+  dance: number
+  visual: number
+}
+
 export interface FinalResultParameter {
   /** 試験順位 */
   examinationPosition: number
   /** ステータス */
-  status: {
-    vocal: number
-    dance: number
-    visual: number
-  }
+  status: IdolStatus
   /** 試験スコア */
   examinationScore: number
 }
@@ -20,16 +24,8 @@ function positionScoreResult(position: number): number {
   }
 }
 
-function statusScoreResult(status: FinalResultParameter["status"], position: number) {
-  // 最終試験の順位によるステータス加算
-  // 1位: 30
-  // 2位: 0
-  // 3位: 0
-  let statusAdd = 0
-  if (position === 1) {
-    statusAdd = 30
-  }
-  const statusSummary = Math.min(status.vocal + statusAdd, 1500) + Math.min(status.dance + statusAdd, 1500) + Math.min(status.visual + statusAdd, 1500)
+function statusScoreResult(status: IdolStatus) {
+  const statusSummary = status.vocal + status.visual + status.dance
   return Math.floor(2.3 * statusSummary)
 }
 
@@ -54,13 +50,38 @@ function examinationScoreResult(examinationScore: number): number {
 }
 
 /**
+ * ステータスチェック
+ * @param status 
+ * @param mode 
+ */
+export function checkStatus(status: IdolStatus, mode: GameMode, position: number): IdolStatus {
+  const MAX_STATUS = (mode == GameMode.MASTER ? 1800 : 1500)
+  if (status.dance > MAX_STATUS || status.visual > MAX_STATUS || status.vocal > MAX_STATUS) {
+    throw new RangeError("ステータス上限を超えています")
+  }
+
+  // 最終試験の順位によるステータスボーナス
+  // 1位: 30
+  // 2位: 0
+  // 3位: 0
+  let statusBonus = 0
+  if (position === 1) {
+    statusBonus = 30
+  }
+  const dance = Math.min(status.dance + statusBonus, MAX_STATUS)
+  const visual = Math.min(status.visual + statusBonus, MAX_STATUS)
+  const vocal = Math.min(status.vocal + statusBonus, MAX_STATUS)
+  return {dance, visual, vocal}
+}
+
+/**
  * 最終ポイント計算
  * 
  */
 export function calcurateFinalResult(parameter: FinalResultParameter): number {
   return Math.floor(
     positionScoreResult(parameter.examinationPosition)
-    + statusScoreResult(parameter.status, parameter.examinationPosition)
+    + statusScoreResult(parameter.status)
     + examinationScoreResult(parameter.examinationScore)
   )
 }
@@ -71,7 +92,7 @@ export function calcurateFinalResult(parameter: FinalResultParameter): number {
  * @param targetRank 目標ランク
  * @param statusSummary ステータス合計
  */
-export function requireExaminationScore(targetRank: string, status: FinalResultParameter["status"], position: number) {
+export function requireExaminationScore(targetRank: string, status: IdolStatus, position: number) {
   // 目標とする最終ポイント
   let targetResult = 0
   switch (targetRank) {
@@ -84,7 +105,7 @@ export function requireExaminationScore(targetRank: string, status: FinalResultP
 
   // 目標の最終ポイントから、ステータスで決まる分と順位点の分を引く
   // 0以下になった場合は0返却
-  const remainResult = targetResult - statusScoreResult(status, position) - positionScoreResult(position)
+  const remainResult = targetResult - statusScoreResult(status) - positionScoreResult(position)
   if (remainResult <= 0) {
     return 0
   }

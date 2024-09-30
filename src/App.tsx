@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react"
 import StatusInputComponent from "./StatusInputComponent"
-import {calcurateFinalResult, requireExaminationScore } from "./FinalResult"
+import {calcurateFinalResult, checkStatus, requireExaminationScore } from "./FinalResult"
 import sampleImage from "./images/IMG_3877.jpg"
 import { loadStatusFromOcrResponse } from "./loadStatusFromImage"
 import PositionInputComponent from "./PositionInputComponent"
 import LoadingComponent from "./LoadingComponent"
+import { GameMode } from "./GameMode"
 
 function App() {
-  const [vocal, setVocal] = useState<string>("1000")
-  const [dance, setDance] = useState<string>("1000")
-  const [visual, setVisual] = useState<string>("1000")
-  const [score, setScore] = useState<string>("10000")
+  const [vocal, setVocal] = useState<string>("1100")
+  const [dance, setDance] = useState<string>("1100")
+  const [visual, setVisual] = useState<string>("1100")
   const [position, setPosition] = useState<string>("1")
+  const [gameMode, setGameMode] = useState<string>("PRO")
+
   const defaultResults = {
     finalPoint: "",
     requiredFinalExaminaionScore: {
@@ -30,34 +32,42 @@ function App() {
   }
 
   useEffect(() => {
-    if (![vocal, dance, score, position].every((value) => /[1-9][0-9]*/.test(value))) {
+    if (![vocal, dance, visual, position].every((value) => /[1-9][0-9]*/.test(value))) {
       return
     }
 
     const examinationPosition = parseInt(position, 10)
-    const examinationScore = parseInt(score, 10)
+    const examinationScore = 10000
     const status = {
       vocal: parseInt(vocal, 10),
       dance: parseInt(dance, 10),
       visual: parseInt(visual, 10),
     }
 
-    const finalPoint = calcurateFinalResult({examinationPosition, examinationScore, status})
-    const aScore = requireExaminationScore("A", status, examinationPosition)
-    const aPlusScore = requireExaminationScore("A+", status, examinationPosition)
-    const sScore = requireExaminationScore("S", status, examinationPosition)
-    const sPlusScore = requireExaminationScore("S+", status, examinationPosition)
-
-    setResults({
-      finalPoint: toString(finalPoint),
-      requiredFinalExaminaionScore: {
-        "S+": {score: toString(sPlusScore), diff: toString(Math.max(sPlusScore - examinationScore, 0))},
-        "S": {score: toString(sScore), diff: toString(Math.max(sScore - examinationScore, 0))},
-        "A+": {score: toString(aPlusScore), diff: toString(Math.max(aPlusScore - examinationScore, 0))},
-        "A": {score: toString(aScore), diff: toString(Math.max(aScore - examinationScore, 0))},
-      }
-    })
-  }, [vocal, dance, visual, score, position])
+    // ステータスチェック
+    try {
+      const idolStatus = checkStatus(status, GameMode.PRO, examinationPosition)
+      // 最終スコア計算
+      const finalPoint = calcurateFinalResult({examinationPosition, examinationScore, status: idolStatus})
+      console.log(finalPoint)
+      // 目標ステータス計算
+      const aScore = requireExaminationScore("A", idolStatus, examinationPosition)
+      const aPlusScore = requireExaminationScore("A+", idolStatus, examinationPosition)
+      const sScore = requireExaminationScore("S", idolStatus, examinationPosition)
+      const sPlusScore = requireExaminationScore("S+", idolStatus, examinationPosition)
+      setResults({
+        finalPoint: toString(finalPoint),
+        requiredFinalExaminaionScore: {
+          "S+": {score: toString(sPlusScore), diff: toString(Math.max(sPlusScore - examinationScore, 0))},
+          "S": {score: toString(sScore), diff: toString(Math.max(sScore - examinationScore, 0))},
+          "A+": {score: toString(aPlusScore), diff: toString(Math.max(aPlusScore - examinationScore, 0))},
+          "A": {score: toString(aScore), diff: toString(Math.max(aScore - examinationScore, 0))},
+        }
+      })  
+    } catch(e) {
+      console.log(e)
+    }
+  }, [vocal, dance, visual, position])
 
 
   async function loadStatusFromImage() {
@@ -96,16 +106,59 @@ function App() {
     }
   }
 
+  function parseGameMode(mode: string): GameMode {
+    if (mode === "PRO") {
+      return GameMode.PRO
+    } else if (mode === "MASTER") {
+      return GameMode.MASTER
+    } else {
+      throw new Error("不正なゲームモード")
+    }
+  }
+
   return (
     <div className="md:max-w-[768px] m-auto">
       {loading && <LoadingComponent /> }
       <main className="w-full p-2">
         <div className="">
+          <div className="my-2 font-bold">ゲーム難易度</div>
+          <div>
+            <div className="w-full text-gray-700 text-xs mb-2">
+              マスター or プロを選択してください。
+            </div>
+            <ul className="w-full flex flex-row flex-nowrap px-4 md:px-12 gap-2 items-center text-sm text-gray-700 bg-white">
+              <li className="w-full border border-gray-200 rounded">
+                <div className="flex px-2 gap-2 items-center">
+                  <input
+                    id="mode-pro"
+                    type="radio" value="PRO" name="list-radio"
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                    checked={gameMode === "PRO"}
+                    onChange={(event) => setGameMode(event.target.value)}
+                  />
+                  <label htmlFor="mode-pro" className="w-full py-2 text-sm text-gray-700">プロ</label>
+                </div>
+              </li>
+              <li className="w-full border border-gray-200 rounded">
+                <div className="flex px-2 gap-2 items-center">
+                  <input
+                    id="mode-master"
+                    type="radio" value="MASTER" name="list-radio"
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                    checked={gameMode === "MASTER"}
+                    onChange={(event) => setGameMode(event.target.value)}
+                  />
+                  <label htmlFor="mode-master" className="w-full py-2 text-sm text-gray-700">マスター</label>
+                </div>
+              </li>
+            </ul>
+          </div>
+
           <div className="my-2 font-bold">最終試験開始前のステータス</div>
           <div className="w-full flex flex-col gap-2 md:flex-row md:gap-4">
-            <StatusInputComponent label="ボーカル" value={vocal} setValue={setVocal} type="vocal" />
-            <StatusInputComponent label="ダンス" value={dance} setValue={setDance} type="dance" />
-            <StatusInputComponent label="ビジュアル" value={visual} setValue={setVisual} type="visual" />
+            <StatusInputComponent label="ボーカル" value={vocal} setValue={setVocal} type="vocal" mode={parseGameMode(gameMode)} />
+            <StatusInputComponent label="ダンス" value={dance} setValue={setDance} type="dance" mode={parseGameMode(gameMode)} />
+            <StatusInputComponent label="ビジュアル" value={visual} setValue={setVisual} type="visual" mode={parseGameMode(gameMode)} />
           </div>
 
           <div className="my-2 font-bold">スクリーンショットからステータス反映</div>
@@ -126,12 +179,10 @@ function App() {
           <div className="my-2 font-bold">最終試験の結果</div>
           <div className="">
             <div className="w-full text-gray-700 text-xs mb-2">
-              1位の場合、試験クリア時ボーナスで各ステータスに自動で+30されます。<br/>
-              点数は、最終プロデュース評価を計算する場合のみ入力してください。
+              1位の場合、試験クリア時ボーナスで各ステータスに自動で+30されます。
             </div>
             <div className="w-full flex flex-col gap-2 md:gap-4 md:flex-row md:justify-baseline md:items-baseline">
               <PositionInputComponent label="順位" position={position} setPosition={setPosition} />
-              <StatusInputComponent label="点数" value={score} setValue={setScore} />
             </div>
           </div>
         </div>
@@ -170,10 +221,6 @@ function App() {
                 </tr>
               </tbody>
             </table>
-          </div>
-          <div className="flex gap-2 mt-2">
-            <div className="whitespace-nowrap font-bold">最終プロデュース評価</div>
-            <div>{results.finalPoint}</div>
           </div>
         </div>
       </main>

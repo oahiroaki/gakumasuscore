@@ -1,23 +1,26 @@
 import { useState } from "react"
 import { Tooltip } from "react-tooltip"
+import { GameMode } from "./GameMode"
 
 interface StatusInputComponentProps {
   label: string
+  mode: GameMode
   value: string
   setValue: (value: string) => void
   type?: "vocal" | "dance" | "visual"
 }
 
 function StatusInputComponent(props: StatusInputComponentProps) {
-  const [errorMessage, setErrorMessage] = useState<string>('')
+  const [errorMessage, setErrorMessage] = useState<string>("")
 
   function changeValue(event: React.ChangeEvent<HTMLInputElement>): void {
     setErrorMessage("")
+    const maxStatus = (props.mode == GameMode.MASTER) ? 1800 : 1500
     const value = event.target.value
     if (value == "" || !/[1-9][0-9]*/.test(value)) {
       setErrorMessage("1以上の整数を入力してください")
-    } else if (props.type != null && parseInt(value, 10) > 1500) {
-      setErrorMessage("1500以下で入力してください")
+    } else if (props.type != null && parseInt(value, 10) > maxStatus) {
+      setErrorMessage(maxStatus + "以下で入力してください")
     }
     props.setValue(value)
   }
@@ -32,6 +35,9 @@ function StatusInputComponent(props: StatusInputComponentProps) {
       className += " border-red-200 focus:border-red-400"
     } else {
       className += " border-gray-200 focus:border-gray-400"
+    }
+    if (errorMessage != null && errorMessage !== "") {
+      className += " bg-red-200"
     }
     return className
   }
