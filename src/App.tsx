@@ -1,19 +1,22 @@
-import { useEffect, useRef, useState } from "react"
-import StatusInputComponent from "./StatusInputComponent"
-import {calcurateFinalResult, checkStatus, requireExaminationScore } from "./FinalResult"
+import { useCallback, useEffect, useRef, useState } from "react"
+import {calcurateFinalResult, readActualStatus, requireExaminationScore } from "./FinalResult"
 import sampleImage from "./images/IMG_3877.jpg"
 import { loadStatusFromOcrResponse } from "./loadStatusFromImage"
 import PositionInputComponent from "./PositionInputComponent"
 import LoadingComponent from "./LoadingComponent"
 import { GameMode } from "./GameMode"
+import { Tooltip } from "react-tooltip"
 
 function App() {
   const [vocal, setVocal] = useState<string>("1100")
+  const [vocalErrorMessage, setVocalErrorMessage] = useState<string>("")
   const [dance, setDance] = useState<string>("1100")
+  const [danceErrorMessage, setDanceErrorMessage] = useState<string>("")
   const [visual, setVisual] = useState<string>("1100")
+  const [visualErrorMessage, setVisualErrorMessage] = useState<string>("")
   const [position, setPosition] = useState<string>("1")
   const [gameMode, setGameMode] = useState<string>("PRO")
-
+ 
   const defaultResults = {
     finalPoint: "",
     requiredFinalExaminaionScore: {
@@ -31,8 +34,32 @@ function App() {
     return value != null ? value.toString() : ""
   }
 
+  const cachedCheckInputStatus = useCallback(() => {
+    const maxStatus = (parseGameMode(gameMode) === GameMode.MASTER) ? 1800 : 1500
+
+    setVocalErrorMessage("")
+    if (vocal == "" || !/[1-9][0-9]*/.test(vocal)) {
+      setVocalErrorMessage("1以上の整数を入力してください")
+    } else if (parseInt(vocal, 10) > maxStatus) {
+      setVocalErrorMessage(maxStatus + "以下で入力してください")
+    }
+    setDanceErrorMessage("")
+    if (dance == "" || !/[1-9][0-9]*/.test(dance)) {
+      setDanceErrorMessage("1以上の整数を入力してください")
+    } else if (parseInt(dance, 10) > maxStatus) {
+      setDanceErrorMessage(maxStatus + "以下で入力してください")
+    }
+    setVisualErrorMessage("")
+    if (visual == "" || !/[1-9][0-9]*/.test(visual)) {
+      setVisualErrorMessage("1以上の整数を入力してください")
+    } else if (parseInt(visual, 10) > maxStatus) {
+      setVisualErrorMessage(maxStatus + "以下で入力してください")
+    }
+    return (vocalErrorMessage === "" && danceErrorMessage === "" && visualErrorMessage === "")
+  }, [dance, danceErrorMessage, gameMode, visual, visualErrorMessage, vocal, vocalErrorMessage])
+
   useEffect(() => {
-    if (![vocal, dance, visual, position].every((value) => /[1-9][0-9]*/.test(value))) {
+    if (!cachedCheckInputStatus()) {
       return
     }
 
@@ -46,7 +73,7 @@ function App() {
 
     // ステータスチェック
     try {
-      const idolStatus = checkStatus(status, parseGameMode(gameMode), examinationPosition)
+      const idolStatus = readActualStatus(status, parseGameMode(gameMode), examinationPosition)
       // 最終スコア計算
       const finalPoint = calcurateFinalResult({examinationPosition, examinationScore, status: idolStatus})
       console.log(finalPoint)
@@ -67,7 +94,7 @@ function App() {
     } catch(e) {
       console.log(e)
     }
-  }, [vocal, dance, visual, position, gameMode])
+  }, [vocal, dance, visual, position, gameMode, cachedCheckInputStatus])
 
 
   async function loadStatusFromImage() {
@@ -116,6 +143,37 @@ function App() {
     }
   }
 
+
+  function changeValue(value: string, setValue: (value: string) => void, setError: (message: string) => void): void {
+    setError("")
+    const maxStatus = (parseGameMode(gameMode) === GameMode.MASTER) ? 1800 : 1500
+    if (value == "" || !/[1-9][0-9]*/.test(value)) {
+      setError("1以上の整数を入力してください")
+    } else if (parseInt(value, 10) > maxStatus) {
+      setError(maxStatus + "以下で入力してください")
+    }
+    setValue(value)
+  }
+
+  function className(type: string, errorMessage: string) {
+    let className = "w-full text-right appearance-none border-2 rounded p-1 text-gray-700 focus:outline-none"
+    if (type === "visual") {
+      className += " border-yellow-200 focus:border-yellow-400"
+    } else if (type === "dance") {
+      className += " border-blue-200 focus:border-blue-400"
+    } else if (type === "vocal") {
+      className += " border-red-200 focus:border-red-400"
+    } else {
+      className += " border-gray-200 focus:border-gray-400"
+    }
+    if (errorMessage != null && errorMessage !== "") {
+      className += " bg-red-200"
+    } else {
+      className += " bg-white"
+    }
+    return className
+  }
+
   return (
     <div className="md:max-w-[768px] m-auto">
       {loading && <LoadingComponent /> }
@@ -156,9 +214,58 @@ function App() {
 
           <div className="my-2 font-bold">最終試験開始前のステータス</div>
           <div className="w-full flex flex-col gap-2 md:flex-row md:gap-4">
-            <StatusInputComponent label="ボーカル" value={vocal} setValue={setVocal} type="vocal" mode={parseGameMode(gameMode)} />
-            <StatusInputComponent label="ダンス" value={dance} setValue={setDance} type="dance" mode={parseGameMode(gameMode)} />
-            <StatusInputComponent label="ビジュアル" value={visual} setValue={setVisual} type="visual" mode={parseGameMode(gameMode)} />
+            <div className="flex flex-row items-baseline justify-start md:flex-col">
+              <div className="w-24 text-sm text-right pr-2 md:text-left md:px-0">
+                <label className="block text-gray-500" htmlFor="input-vocal">ボーカル</label>
+              </div>
+              <div className="w-44">
+                <input id="input-vocal"
+                  className={className("vocal", vocalErrorMessage)}
+                  type="number" value={vocal}
+                  onChange={event => changeValue(event.target.value, setVocal, setVocalErrorMessage)}
+                  data-tooltip-id="vocal-error-tooltip" data-tooltip-content={vocalErrorMessage}
+                />
+              </div>
+              <Tooltip id="vocal-error-tooltip" />
+            </div>
+            <div className="flex flex-row items-baseline justify-start md:flex-col">
+              <div className="w-24 text-sm text-right pr-2 md:text-left md:px-0">
+                <label className="block text-gray-500" htmlFor="input-dance">ダンス</label>
+              </div>
+              <div className="w-44">
+                <input id="input-dance"
+                  className={className("dance", danceErrorMessage)}
+                  type="number" value={dance}
+                  onChange={event => changeValue(event.target.value, setDance, setDanceErrorMessage)}
+                  data-tooltip-id="dance-error-tooltip" data-tooltip-content={danceErrorMessage}
+                />
+              </div>
+              <Tooltip id="dance-error-tooltip" />
+            </div>
+            <div className="flex flex-row items-baseline justify-start md:flex-col">
+              <div className="w-24 text-sm text-right pr-2 md:text-left md:px-0">
+                <label className="block text-gray-500" htmlFor="input-visual">ビジュアル</label>
+              </div>
+              <div className="w-44">
+                <input id="input-dance"
+                  className={className("visual", visualErrorMessage)}
+                  type="number" value={visual}
+                  onChange={event => changeValue(event.target.value, setVisual, setVisualErrorMessage)}
+                  data-tooltip-id="visual-error-tooltip" data-tooltip-content={visualErrorMessage}
+                />
+              </div>
+              <Tooltip id="visual-error-tooltip" />
+            </div>
+          </div>
+
+          <div className="my-2 font-bold">最終試験の結果</div>
+          <div className="">
+            <div className="w-full text-gray-700 text-xs mb-2">
+              1位の場合、試験クリア時ボーナスで各ステータスに自動で+30されます。
+            </div>
+            <div className="w-full flex flex-col gap-2 md:gap-4 md:flex-row md:justify-baseline md:items-baseline">
+              <PositionInputComponent label="順位" position={position} setPosition={setPosition} />
+            </div>
           </div>
 
           <div className="my-2 font-bold">スクリーンショットからステータス反映</div>
@@ -173,16 +280,6 @@ function App() {
             </div>
             <div className="flex flex-col gap-2 mt-2">
               <input type="file" accept="image/*" ref={inputImageRef} onChange={() => loadStatusFromImage()} />
-            </div>
-          </div>
-
-          <div className="my-2 font-bold">最終試験の結果</div>
-          <div className="">
-            <div className="w-full text-gray-700 text-xs mb-2">
-              1位の場合、試験クリア時ボーナスで各ステータスに自動で+30されます。
-            </div>
-            <div className="w-full flex flex-col gap-2 md:gap-4 md:flex-row md:justify-baseline md:items-baseline">
-              <PositionInputComponent label="順位" position={position} setPosition={setPosition} />
             </div>
           </div>
         </div>

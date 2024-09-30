@@ -13,7 +13,7 @@ function PositionInputComponent(props: PositionInputComponentProps) {
       <div>
         <select id="position"
           className="
-            w-40 text-gray-700 rounded appearance-none p-1
+            w-44 text-gray-700 rounded appearance-none p-1
             bg-white border-2 border-gray-200
             focus:outline-none focus:border-gray-400
           "

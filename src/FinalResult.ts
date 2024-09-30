@@ -50,11 +50,11 @@ function examinationScoreResult(examinationScore: number): number {
 }
 
 /**
- * ステータスチェック
+ * 実際のステータスを取得
  * @param status 
  * @param mode 
  */
-export function checkStatus(status: IdolStatus, mode: GameMode, position: number): IdolStatus {
+export function readActualStatus(status: IdolStatus, mode: GameMode, position: number): IdolStatus {
   const MAX_STATUS = (mode == GameMode.MASTER ? 1800 : 1500)
   if (status.dance > MAX_STATUS || status.visual > MAX_STATUS || status.vocal > MAX_STATUS) {
     throw new RangeError("ステータス上限を超えています")
