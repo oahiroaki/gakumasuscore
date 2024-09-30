@@ -37,7 +37,7 @@ function StatusInputComponent(props: StatusInputComponentProps) {
       className += " border-gray-200 focus:border-gray-400"
     }
     if (errorMessage != null && errorMessage !== "") {
-      className += " bg-red-200"
+      className += " bg-red-300"
     }
     return className
   }

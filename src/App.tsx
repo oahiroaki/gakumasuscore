@@ -46,7 +46,7 @@ function App() {
 
     // ステータスチェック
     try {
-      const idolStatus = checkStatus(status, GameMode.PRO, examinationPosition)
+      const idolStatus = checkStatus(status, parseGameMode(gameMode), examinationPosition)
       // 最終スコア計算
       const finalPoint = calcurateFinalResult({examinationPosition, examinationScore, status: idolStatus})
       console.log(finalPoint)
@@ -67,7 +67,7 @@ function App() {
     } catch(e) {
       console.log(e)
     }
-  }, [vocal, dance, visual, position])
+  }, [vocal, dance, visual, position, gameMode])
 
 
   async function loadStatusFromImage() {
