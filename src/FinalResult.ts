@@ -100,6 +100,7 @@ export function requireExaminationScore(targetRank: string, status: IdolStatus, 
     case 'A+': targetResult = 11500; break
     case 'S': targetResult = 13000; break
     case 'S+': targetResult = 14500; break
+    case 'SS': targetResult = 16000; break
     default: throw Error('Unknown target rank.')
   }
 

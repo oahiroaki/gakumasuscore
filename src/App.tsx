@@ -24,6 +24,7 @@ function App() {
       "A+": {score: "", diff: ""},
       "S": {score: "", diff: ""},
       "S+": {score: "", diff: ""},
+      "SS": {score: "", diff: ""},
     }  
   }
   const [results, setResults] = useState(defaultResults)
@@ -82,9 +83,12 @@ function App() {
       const aPlusScore = requireExaminationScore("A+", idolStatus, examinationPosition)
       const sScore = requireExaminationScore("S", idolStatus, examinationPosition)
       const sPlusScore = requireExaminationScore("S+", idolStatus, examinationPosition)
+      const ssScore = requireExaminationScore("SS", idolStatus, examinationPosition)
+
       setResults({
         finalPoint: toString(finalPoint),
         requiredFinalExaminaionScore: {
+          "SS": {score: toString(ssScore), diff: toString(Math.max(ssScore - examinationScore, 0))},
           "S+": {score: toString(sPlusScore), diff: toString(Math.max(sPlusScore - examinationScore, 0))},
           "S": {score: toString(sScore), diff: toString(Math.max(sScore - examinationScore, 0))},
           "A+": {score: toString(aPlusScore), diff: toString(Math.max(aPlusScore - examinationScore, 0))},
@@ -296,6 +300,11 @@ function App() {
                 </tr>
               </thead>
               <tbody>
+                <tr className="border-b border-x">
+                  <td className="px-4 py-2 text-center">SS</td>
+                  <td className="px-4 py-2 text-right">16000</td>
+                  <td className="px-4 py-2 text-right">{results.requiredFinalExaminaionScore["SS"].score}</td>
+                </tr>
                 <tr className="border-b border-x">
                   <td className="px-4 py-2 text-center">S+</td>
                   <td className="px-4 py-2 text-right">14500</td>
